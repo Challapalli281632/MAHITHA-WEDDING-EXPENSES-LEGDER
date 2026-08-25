@@ -558,6 +558,7 @@ const BUDGET_KEY = 'telugu-wedding-budget';
 let entries = [];
 let budget = 0;
 let editingId = null;
+let receiptUrlMap = {}; // { entryId: sharedPhotoUrl } — synced from the Google Sheet backend
 
 const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
 const fmtDate = (iso) => {
@@ -568,6 +569,40 @@ const fmtDate = (iso) => {
 };
 const todayISO = () => new Date().toISOString().slice(0,10);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* Storage: use Claude.ai's window.storage when available (e.g. running as an
+   artifact); otherwise fall back to this device's localStorage so the app
+   also works when opened directly as a plain HTML file. */
+const storage = (window.storage && typeof window.storage.get === 'function')
+  ? window.storage
+  : (function(){
+      const lsKey = (key, shared) => 'wwlocal::' + (shared ? 'shared::' : 'private::') + key;
+      return {
+        async get(key, shared){
+          const raw = localStorage.getItem(lsKey(key, shared));
+          if(raw === null) return null;
+          try{ return { key, value: JSON.parse(raw), shared: !!shared }; }
+          catch(e){ return null; }
+        },
+        async set(key, value, shared){
+          localStorage.setItem(lsKey(key, shared), JSON.stringify(value));
+          return { key, value, shared: !!shared };
+        },
+        async delete(key, shared){
+          localStorage.removeItem(lsKey(key, shared));
+          return { key, deleted: true, shared: !!shared };
+        },
+        async list(prefix, shared){
+          const p = 'wwlocal::' + (shared ? 'shared::' : 'private::') + (prefix || '');
+          const keys = [];
+          for(let i=0;i<localStorage.length;i++){
+            const k = localStorage.key(i);
+            if(k && k.startsWith(p)) keys.push(k.slice(('wwlocal::' + (shared ? 'shared::' : 'private::')).length));
+          }
+          return { keys, prefix, shared: !!shared };
+        }
+      };
+    })();
 
 (function buildToran(){
   const strip = document.getElementById('toranStrip');
@@ -581,11 +616,11 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7
 document.getElementById('entryDate').value = todayISO();
 
 async function saveEntries(){
-  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(entries), false); }
+  try{ await storage.set(STORAGE_KEY, JSON.stringify(entries), false); }
   catch(e){ console.error('Could not save entries', e); }
 }
 async function saveBudget(){
-  try{ await window.storage.set(BUDGET_KEY, JSON.stringify(budget), false); }
+  try{ await storage.set(BUDGET_KEY, JSON.stringify(budget), false); }
   catch(e){ console.error('Could not save budget', e); }
 }
 
@@ -772,22 +807,20 @@ document.getElementById('entriesContainer').addEventListener('click', async (ev)
     if(!confirm(`Delete ${label}? This cannot be undone.`)) return;
     entries = entries.filter(e => e.id !== id);
     await saveEntries();
-    try{ await window.storage.delete('receipt:' + id, true); }catch(err){}
+    delete receiptUrlMap[id];
+    try{ await storage.set('receiptUrlMap', JSON.stringify(receiptUrlMap), true); }catch(err){}
+    deleteReceiptFromSheet(id);
     if(editingId === id) resetForm();
     render();
     pushToSheet();
     if(receiptsView.style.display !== 'none') loadReceiptGrid();
   } else if(action === 'view-receipt'){
     const target = entries.find(e => e.id === id);
-    try{
-      const res = await window.storage.get('receipt:' + id, true);
-      if(res && res.value && target){
-        openLightbox(res.value, `${target.name} · ${target.category} · ${fmt(target.amount)} · ${fmtDate(target.date)}`);
-      } else {
-        alert('Could not find this receipt photo.');
-      }
-    }catch(err){
-      alert('Could not load this receipt photo.');
+    const url = receiptUrlMap[id];
+    if(url && target){
+      openLightbox(url, `${target.name} · ${target.category} · ${fmt(target.amount)} · ${fmtDate(target.date)}`);
+    } else {
+      alert('Could not find this receipt photo — it may still be uploading, or the shared sheet may be unreachable.');
     }
   } else if(action === 'edit'){
     const target = entries.find(e => e.id === id);
@@ -968,6 +1001,29 @@ document.getElementById('receiptFileInput').addEventListener('change', async (ev
   document.getElementById('receiptBtnRow').style.display = 'flex';
 });
 
+async function uploadReceiptToSheet(id, dataUrl){
+  const base64 = dataUrl.split(',')[1];
+  const mimeType = dataUrl.substring(5, dataUrl.indexOf(';'));
+  const res = await fetch(SYNC_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'uploadReceipt', id, mimeType, base64 })
+  });
+  const data = await res.json();
+  if(data.status !== 'ok') throw new Error(data.message || 'upload failed');
+  return data.url;
+}
+
+async function deleteReceiptFromSheet(id){
+  try{
+    await fetch(SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'deleteReceipt', id })
+    });
+  }catch(e){ console.error('Could not delete receipt photo from shared sheet', e); }
+}
+
 document.getElementById('confirmReceiptBtn').addEventListener('click', async () => {
   const name = document.getElementById('rItemName').value.trim();
   const category = document.getElementById('rCategory').value;
@@ -978,12 +1034,21 @@ document.getElementById('confirmReceiptBtn').addEventListener('click', async () 
   const id = uid();
   entries.push({ id, name, category, amount, date, hasReceipt: !!currentReceiptImage });
   await saveEntries();
-  if(currentReceiptImage){
-    try{ await window.storage.set('receipt:' + id, currentReceiptImage, true); }
-    catch(e){ console.error('Could not save receipt image', e); }
-  }
   render();
   pushToSheet();
+
+  if(currentReceiptImage){
+    setReceiptStatus('Uploading photo so everyone can see it…');
+    try{
+      const url = await uploadReceiptToSheet(id, currentReceiptImage);
+      receiptUrlMap[id] = url;
+      await storage.set('receiptUrlMap', JSON.stringify(receiptUrlMap), true);
+    }catch(e){
+      console.error('Could not upload receipt photo', e);
+      alert('The entry was saved, but the photo could not be uploaded to the shared sheet. Check the sync status line and try again.');
+    }
+  }
+
   resetReceiptUpload(true);
   await loadReceiptGrid();
 });
@@ -1002,16 +1067,12 @@ async function loadReceiptGrid(){
   }
   let renderedAny = false;
   for(const e of withReceipts){
-    let imgSrc = '';
-    try{
-      const res = await window.storage.get('receipt:' + e.id, true);
-      imgSrc = res && res.value ? res.value : '';
-    }catch(err){ imgSrc = ''; }
+    const imgSrc = receiptUrlMap[e.id];
     if(!imgSrc) continue;
     renderedAny = true;
     const thumb = document.createElement('div');
     thumb.className = 'receipt-thumb';
-    thumb.innerHTML = `<img src="${imgSrc}" alt="${escapeHtml(e.name)}"><div class="receipt-thumb-label">${escapeHtml(e.name)}<br>${fmt(e.amount)}</div>`;
+    thumb.innerHTML = `<img src="${imgSrc}" alt="${escapeHtml(e.name)}" loading="lazy"><div class="receipt-thumb-label">${escapeHtml(e.name)}<br>${fmt(e.amount)}</div>`;
     thumb.addEventListener('click', () => openLightbox(imgSrc, `${e.name} · ${e.category} · ${fmt(e.amount)} · ${fmtDate(e.date)}`));
     grid.appendChild(thumb);
   }
@@ -1067,13 +1128,16 @@ async function pullFromSheet(){
         : { ...base, id: uid(), hasReceipt: false };
     });
     budget = Number(data.budget) || 0;
+    receiptUrlMap = data.receipts || {};
     await saveEntries();
     await saveBudget();
+    try{ await storage.set('receiptUrlMap', JSON.stringify(receiptUrlMap), true); }catch(e){}
     document.getElementById('budgetInput').value = budget || '';
     render();
+    if(receiptsView.style.display !== 'none') loadReceiptGrid();
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
   }catch(e){
-    setSyncStatus('☁ Could not reach shared sheet — showing data saved on this device.');
+    setSyncStatus('☁ Could not reach shared sheet — showing data and photos saved on this device.');
   }
 }
 
@@ -1094,13 +1158,17 @@ async function pushToSheet(){
 
 async function loadLocalCache(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
+    const res = await storage.get(STORAGE_KEY, false);
     entries = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){ entries = []; }
   try{
-    const bres = await window.storage.get(BUDGET_KEY, false);
+    const bres = await storage.get(BUDGET_KEY, false);
     budget = bres && bres.value ? JSON.parse(bres.value) : 0;
   }catch(e){ budget = 0; }
+  try{
+    const rres = await storage.get('receiptUrlMap', true);
+    receiptUrlMap = rres && rres.value ? JSON.parse(rres.value) : {};
+  }catch(e){ receiptUrlMap = {}; }
 }
 
 (async () => {
