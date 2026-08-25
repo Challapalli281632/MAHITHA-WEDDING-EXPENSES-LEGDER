@@ -223,13 +223,13 @@
   .ledger-wrap{ padding:6px 8px 24px; }
   .ledger-header-row{
     display:grid;
-    grid-template-columns: 24px 1fr 0.75fr 52px;
+    grid-template-columns: 24px 1fr 0.75fr 0.75fr 0.75fr 52px;
     gap:6px; padding:8px 10px; font-size:0.65rem; text-transform:uppercase;
     letter-spacing:0.6px; color:var(--ink-soft); border-bottom:2px solid var(--turmeric);
   }
   .entry-row{
     display:grid;
-    grid-template-columns: 24px 1fr 0.75fr 52px;
+    grid-template-columns: 24px 1fr 0.75fr 0.75fr 0.75fr 52px;
     gap:6px; padding:11px 10px; align-items:center;
     border-bottom:1px solid var(--ruled-line); font-size:0.85rem;
     animation:fadeIn 0.35s ease;
@@ -242,8 +242,10 @@
     font-size:0.65rem; padding:2px 7px;
     border-radius:10px; background:var(--cream-2); color:var(--maroon); border:1px solid var(--ruled-line);
   }
-  .entry-desc .date-tag{ font-size:0.68rem; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .entry-desc .paidby-tag{ font-size:0.68rem; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
   .amt{ font-family:'IBM Plex Mono',monospace; text-align:right; font-weight:600; }
+  .date-cell{ text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .paidby-cell{ text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .action-cell{ display:flex; flex-direction:column; gap:4px; align-items:center; }
   .icon-btn{ background:none; border:none; cursor:pointer; font-size:0.95rem; line-height:1; color:var(--ink-soft); }
   .icon-btn.edit-btn:hover{ color:var(--leaf-dark); }
@@ -269,7 +271,6 @@
     .form-grid{ grid-template-columns:1fr; }
     .toolbar{ grid-template-columns:1fr; }
     .dash-grid{ grid-template-columns:1fr; }
-    .receipt-grid{ grid-template-columns:repeat(2,1fr); }
   }
   @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
 
@@ -280,104 +281,11 @@
     font-style:italic;
   }
 
-  /* Receipts tab */
-  .upload-box{
-    border:2px dashed var(--ruled-line);
-    border-radius:8px;
-    padding:16px;
-    text-align:center;
-    background:#fff;
-  }
-  .upload-box input[type="file"]{
-    display:block;
-    margin:0 auto 10px;
-    font-family:'Karla',sans-serif;
-    font-size:0.85rem;
-  }
-  .upload-hint{ font-size:0.78rem; color:var(--ink-soft); margin:0; line-height:1.4; }
-  .receipt-preview-img{
-    display:block;
-    max-width:100%;
-    max-height:280px;
-    margin:14px auto 6px;
-    border-radius:6px;
-    border:1px solid var(--ruled-line);
-    object-fit:contain;
-  }
-  .receipt-status{
-    text-align:center;
-    font-size:0.8rem;
-    color:var(--maroon);
-    font-style:italic;
-    margin:4px 0 10px;
-  }
-  .receipt-btn-row{ display:flex; gap:8px; margin-top:6px; }
-  .receipt-btn-row .add-btn{ margin:0; }
-  .receipt-btn-row .discard-btn{
-    flex:0 0 auto;
-    padding:11px 16px;
-    background:#fff;
-    border:1px solid var(--rose);
-    color:var(--rose);
-    border-radius:5px;
-    font-family:'Marcellus',serif;
-    font-size:0.85rem;
-    cursor:pointer;
-  }
-  .receipt-btn-row .discard-btn:hover{ background:var(--rose); color:#fff; }
-  .receipts-heading{
-    font-family:'Marcellus',serif; font-size:1rem; color:var(--maroon);
-    padding:16px 20px 4px; margin:0;
-  }
-  .receipt-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-    padding:10px 20px 24px;
-  }
-  .receipt-thumb{
-    position:relative;
-    aspect-ratio:1/1;
-    border-radius:6px;
-    overflow:hidden;
-    border:1px solid var(--ruled-line);
-    cursor:pointer;
-    background:var(--cream-2);
-  }
-  .receipt-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .receipt-thumb-label{
-    position:absolute; left:0; right:0; bottom:0;
-    background:linear-gradient(0deg, rgba(0,0,0,0.72), transparent);
-    color:#fff; font-size:0.62rem; padding:4px 5px 3px;
-    line-height:1.25;
-  }
-  .receipt-icon-btn{
-    background:none; border:none; cursor:pointer; font-size:0.75rem; line-height:1;
-    padding:0 2px;
-  }
-  .lightbox{
-    display:none;
-    position:fixed; inset:0;
-    background:rgba(20,8,9,0.88);
-    z-index:1000;
-    align-items:center; justify-content:center;
-    padding:20px;
-  }
-  .lightbox-inner{ max-width:100%; max-height:100%; text-align:center; }
-  .lightbox-inner img{ max-width:100%; max-height:75vh; border-radius:6px; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
-  .lightbox-caption{ color:var(--cream); font-size:0.82rem; margin-top:10px; }
-  .lightbox-close{
-    position:absolute; top:16px; right:20px;
-    background:rgba(246,238,218,0.15); border:1px solid var(--turmeric-bright);
-    color:var(--cream); width:34px; height:34px; border-radius:50%;
-    font-size:1.1rem; cursor:pointer;
-  }
-
   @media print{
     body{ background:#fff; padding:0; }
     .book{ box-shadow:none; border-radius:0; max-width:100%; }
-    .toran, .add-entry, .tabs, .toolbar, .action-cell, footer.note, .budget-field, .receipt-icon-btn, #receiptsView, .lightbox{ display:none !important; }
-    .ledger-header-row, .entry-row{ grid-template-columns: 24px 1fr 0.75fr; }
+    .toran, .add-entry, .tabs, .toolbar, .action-cell, footer.note, .budget-field{ display:none !important; }
+    .ledger-header-row, .entry-row{ grid-template-columns: 24px 1fr 0.75fr 0.75fr 0.75fr; }
   }
 </style>
 </head>
@@ -411,7 +319,6 @@
   <div class="tabs">
     <button class="tab-btn active" id="tabLedgerBtn" data-tab="ledger">Ledger</button>
     <button class="tab-btn" id="tabDashboardBtn" data-tab="dashboard">Dashboard</button>
-    <button class="tab-btn" id="tabReceiptsBtn" data-tab="receipts">Receipts</button>
   </div>
 
   <div id="ledgerView">
@@ -442,10 +349,20 @@
           </select>
         </div>
         <div>
+          <label for="paidBy">Expenditure Done By</label>
+          <select id="paidBy">
+            <option>Radha Krishna</option>
+            <option>Saikumar</option>
+            <option>Eswar</option>
+            <option>Mahitha</option>
+            <option>Seshu</option>
+          </select>
+        </div>
+        <div>
           <label for="entryDate">Date</label>
           <input type="date" id="entryDate">
         </div>
-        <div class="full">
+        <div>
           <label for="paidAmount">Amount Paid (₹)</label>
           <input type="number" id="paidAmount" placeholder="0" min="0" step="100">
         </div>
@@ -473,6 +390,8 @@
         <div>#</div>
         <div>Item</div>
         <div style="text-align:right;">Paid</div>
+        <div style="text-align:center;">Date</div>
+        <div style="text-align:center;">Paid By</div>
         <div></div>
       </div>
       <div id="entriesContainer">
@@ -487,69 +406,7 @@
     <div id="dashBars"></div>
   </div>
 
-  <div id="receiptsView" style="display:none;">
-    <div class="add-entry">
-      <h2><span>Upload a bill photo</span></h2>
-      <div class="upload-box">
-        <input type="file" id="receiptFileInput" accept="image/*" capture="environment">
-        <p class="upload-hint">Take a photo or choose an image of a receipt, invoice, or bill. I'll try to read the item, category, and amount automatically — you can fix anything before it's added.</p>
-      </div>
-      <div id="receiptPreviewWrap" style="display:none;">
-        <img id="receiptPreviewImg" class="receipt-preview-img" alt="Receipt preview">
-        <p class="receipt-status" id="receiptStatus"></p>
-        <div class="form-grid" id="receiptConfirmForm" style="display:none;">
-          <div class="full">
-            <label for="rItemName">Item / description</label>
-            <input type="text" id="rItemName" placeholder="e.g. Catering advance">
-          </div>
-          <div>
-            <label for="rCategory">Category</label>
-            <select id="rCategory">
-              <option>Lagnalu</option>
-              <option>Kalyana Mandapam</option>
-              <option>Catering & Bhojanam</option>
-              <option>Purohit & Rituals</option>
-              <option>Makeup & Mehendi</option>
-              <option>Mandapam Decor</option>
-              <option>Mangala Vadyam (Music)</option>
-              <option>Jewellery Shopping</option>
-              <option>Sarees and dresses shopping for bride and family</option>
-              <option>Lagnapatrika (Invitations)</option>
-              <option>Photography & Video</option>
-              <option>Return Gifts</option>
-              <option>Transport & Accommodation</option>
-              <option>Miscellaneous</option>
-            </select>
-          </div>
-          <div>
-            <label for="rDate">Date</label>
-            <input type="date" id="rDate">
-          </div>
-          <div class="full">
-            <label for="rAmount">Amount Paid (₹)</label>
-            <input type="number" id="rAmount" placeholder="0" min="0" step="100">
-          </div>
-        </div>
-        <div class="receipt-btn-row" id="receiptBtnRow" style="display:none;">
-          <button class="add-btn" id="confirmReceiptBtn">✓ Confirm & Add to Ledger</button>
-          <button class="discard-btn" id="discardReceiptBtn">Discard</button>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="receipts-heading">Saved bill photos</h3>
-    <div class="receipt-grid" id="receiptGrid"></div>
-  </div>
-
   <footer class="note">Saved automatically on this device · scroll up any time to update your budget</footer>
-</div>
-
-<div class="lightbox" id="lightbox">
-  <div class="lightbox-inner">
-    <button class="lightbox-close" id="lightboxClose">✕</button>
-    <img id="lightboxImg" src="" alt="Receipt full view">
-    <div class="lightbox-caption" id="lightboxCaption"></div>
-  </div>
 </div>
 
 <script>
@@ -558,14 +415,16 @@ const BUDGET_KEY = 'telugu-wedding-budget';
 let entries = [];
 let budget = 0;
 let editingId = null;
-let receiptUrlMap = {}; // { entryId: sharedPhotoUrl } — synced from the Google Sheet backend
+
 
 const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
 const fmtDate = (iso) => {
   if(!iso) return '';
-  const d = new Date(iso + 'T00:00:00');
+  // Extract just the date part (YYYY-MM-DD) if it contains time
+  const dateOnly = iso.includes('T') ? iso.split('T')[0] : iso;
+  const d = new Date(dateOnly + 'T00:00:00');
   if(isNaN(d)) return iso;
-  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
 };
 const todayISO = () => new Date().toISOString().slice(0,10);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -675,11 +534,11 @@ function render(){
           <div class="item-name">${escapeHtml(e.name)}</div>
           <div class="meta-row">
             <span class="cat-tag">${escapeHtml(e.category)}</span>
-            <span class="date-tag">${fmtDate(e.date)}</span>
-            ${e.hasReceipt ? `<button class="receipt-icon-btn" data-id="${e.id}" data-action="view-receipt" aria-label="View receipt photo">📷</button>` : ''}
           </div>
         </div>
         <div class="amt">${fmt(e.amount)}</div>
+        <div class="date-cell" style="text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap;">${fmtDate(e.date)}</div>
+        <div class="paidby-cell" style="text-align:center; font-size:0.85rem; color:var(--ink-soft);">${escapeHtml(e.paidBy || '')}</div>
         <div class="action-cell">
           <button class="icon-btn edit-btn" data-id="${e.id}" data-action="edit" aria-label="Edit entry">✎</button>
           <button class="icon-btn del-btn" data-id="${e.id}" data-action="delete" aria-label="Delete entry">✕</button>
@@ -760,6 +619,7 @@ function resetForm(){
   document.getElementById('paidAmount').value = '';
   document.getElementById('entryDate').value = todayISO();
   document.getElementById('category').selectedIndex = 0;
+  document.getElementById('paidBy').selectedIndex = 0;
   document.getElementById('addBtn').textContent = '+ Add to Ledger';
   document.getElementById('addBtn').classList.remove('editing');
   document.getElementById('formTitle').textContent = 'Add an entry';
@@ -769,6 +629,7 @@ function resetForm(){
 document.getElementById('addBtn').addEventListener('click', async () => {
   const name = document.getElementById('itemName').value.trim();
   const category = document.getElementById('category').value;
+  const paidBy = document.getElementById('paidBy').value;
   const amount = Number(document.getElementById('paidAmount').value) || 0;
   const date = document.getElementById('entryDate').value || todayISO();
 
@@ -780,10 +641,10 @@ document.getElementById('addBtn').addEventListener('click', async () => {
   if(editingId){
     const target = entries.find(e => e.id === editingId);
     if(target){
-      target.name = name; target.category = category; target.amount = amount; target.date = date;
+      target.name = name; target.category = category; target.paidBy = paidBy; target.amount = amount; target.date = date;
     }
   } else {
-    entries.push({ id: uid(), name, category, amount, date });
+    entries.push({ id: uid(), name, category, paidBy, amount, date });
   }
 
   await saveEntries();
@@ -807,27 +668,16 @@ document.getElementById('entriesContainer').addEventListener('click', async (ev)
     if(!confirm(`Delete ${label}? This cannot be undone.`)) return;
     entries = entries.filter(e => e.id !== id);
     await saveEntries();
-    delete receiptUrlMap[id];
-    try{ await storage.set('receiptUrlMap', JSON.stringify(receiptUrlMap), true); }catch(err){}
-    deleteReceiptFromSheet(id);
     if(editingId === id) resetForm();
     render();
     pushToSheet();
-    if(receiptsView.style.display !== 'none') loadReceiptGrid();
-  } else if(action === 'view-receipt'){
-    const target = entries.find(e => e.id === id);
-    const url = receiptUrlMap[id];
-    if(url && target){
-      openLightbox(url, `${target.name} · ${target.category} · ${fmt(target.amount)} · ${fmtDate(target.date)}`);
-    } else {
-      alert('Could not find this receipt photo — it may still be uploading, or the shared sheet may be unreachable.');
-    }
   } else if(action === 'edit'){
     const target = entries.find(e => e.id === id);
     if(!target) return;
     editingId = id;
     document.getElementById('itemName').value = target.name;
     document.getElementById('category').value = target.category;
+    document.getElementById('paidBy').value = target.paidBy || '';
     document.getElementById('paidAmount').value = target.amount;
     document.getElementById('entryDate').value = target.date;
     document.getElementById('addBtn').textContent = 'Update Entry';
@@ -845,8 +695,8 @@ document.getElementById('sortSelect').addEventListener('change', render);
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   const list = getFilteredSorted();
   if(list.length === 0){ alert('No entries to export.'); return; }
-  const header = ['Date','Item','Category','Amount (INR)'];
-  const rows = list.map(e => [fmtDate(e.date), e.name.replace(/"/g,'""'), e.category, e.amount]);
+  const header = ['Date','Item','Category','Paid By','Amount (INR)'];
+  const rows = list.map(e => [fmtDate(e.date), e.name.replace(/"/g,'""'), e.category, e.paidBy || '', e.amount]);
   const csv = [header, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -872,226 +722,17 @@ document.getElementById('budgetInput').addEventListener('input', (ev) => {
 
 const tabLedgerBtn = document.getElementById('tabLedgerBtn');
 const tabDashboardBtn = document.getElementById('tabDashboardBtn');
-const tabReceiptsBtn = document.getElementById('tabReceiptsBtn');
 const ledgerView = document.getElementById('ledgerView');
 const dashboardView = document.getElementById('dashboardView');
-const receiptsView = document.getElementById('receiptsView');
 
 function switchTab(tab){
   tabLedgerBtn.classList.toggle('active', tab === 'ledger');
   tabDashboardBtn.classList.toggle('active', tab === 'dashboard');
-  tabReceiptsBtn.classList.toggle('active', tab === 'receipts');
   ledgerView.style.display = tab === 'ledger' ? '' : 'none';
   dashboardView.style.display = tab === 'dashboard' ? 'block' : 'none';
-  receiptsView.style.display = tab === 'receipts' ? 'block' : 'none';
-  if(tab === 'receipts') loadReceiptGrid();
 }
 tabLedgerBtn.addEventListener('click', () => switchTab('ledger'));
 tabDashboardBtn.addEventListener('click', () => switchTab('dashboard'));
-tabReceiptsBtn.addEventListener('click', () => switchTab('receipts'));
-
-/* ---------- Receipts: upload, AI auto-read, save, gallery, lightbox ---------- */
-
-const RECEIPT_CATEGORIES = [
-  'Lagnalu','Kalyana Mandapam','Catering & Bhojanam','Purohit & Rituals',
-  'Makeup & Mehendi','Mandapam Decor','Mangala Vadyam (Music)','Jewellery Shopping',
-  'Sarees and dresses shopping for bride and family','Lagnapatrika (Invitations)',
-  'Photography & Video','Return Gifts','Transport & Accommodation','Miscellaneous'
-];
-let currentReceiptImage = null;
-document.getElementById('rDate').value = todayISO();
-
-function readFileAsDataURL(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function compressImage(dataUrl, maxDim, quality){
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      let { width, height } = img;
-      if(width > height && width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
-      else if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
-}
-
-function setReceiptStatus(msg){
-  document.getElementById('receiptStatus').textContent = msg;
-}
-
-async function extractReceiptData(dataUrl){
-  const base64 = dataUrl.split(',')[1];
-  const mimeType = dataUrl.substring(5, dataUrl.indexOf(';'));
-  const catList = RECEIPT_CATEGORIES.join(', ');
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 500,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mimeType, data: base64 } },
-          { type: "text", text: `This is a photo of a wedding-related bill or receipt. Read it and reply with ONLY a JSON object, no other text and no markdown fences, in exactly this shape: {"item":"short description of what was paid for","category":"one of exactly these: ${catList}","amount":numeric total amount in INR with no currency symbol or commas,"date":"YYYY-MM-DD if a date is visible on the bill, otherwise empty string"}` }
-        ]
-      }]
-    })
-  });
-  const data = await response.json();
-  const textBlock = (data.content || []).map(b => b.text || '').join('');
-  const clean = textBlock.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
-}
-
-function resetReceiptUpload(clearInput){
-  currentReceiptImage = null;
-  document.getElementById('receiptPreviewWrap').style.display = 'none';
-  document.getElementById('receiptConfirmForm').style.display = 'none';
-  document.getElementById('receiptBtnRow').style.display = 'none';
-  setReceiptStatus('');
-  document.getElementById('rItemName').value = '';
-  document.getElementById('rAmount').value = '';
-  document.getElementById('rDate').value = todayISO();
-  document.getElementById('rCategory').selectedIndex = 0;
-  if(clearInput) document.getElementById('receiptFileInput').value = '';
-}
-
-document.getElementById('receiptFileInput').addEventListener('change', async (ev) => {
-  const file = ev.target.files[0];
-  if(!file) return;
-  resetReceiptUpload(false);
-  let compressed;
-  try{
-    const rawDataUrl = await readFileAsDataURL(file);
-    compressed = await compressImage(rawDataUrl, 1280, 0.75);
-  }catch(e){
-    setReceiptStatus('Could not read that image — please try another photo.');
-    return;
-  }
-  currentReceiptImage = compressed;
-  document.getElementById('receiptPreviewImg').src = compressed;
-  document.getElementById('receiptPreviewWrap').style.display = 'block';
-  setReceiptStatus('Reading the bill…');
-  try{
-    const result = await extractReceiptData(compressed);
-    document.getElementById('rItemName').value = result.item || '';
-    const catSel = document.getElementById('rCategory');
-    const matched = [...catSel.options].some(o => o.value === result.category);
-    catSel.value = matched ? result.category : 'Miscellaneous';
-    document.getElementById('rAmount').value = result.amount || '';
-    document.getElementById('rDate').value = (result.date && /^\d{4}-\d{2}-\d{2}$/.test(result.date)) ? result.date : todayISO();
-    setReceiptStatus('Auto-read complete — check the details below and confirm.');
-  }catch(e){
-    setReceiptStatus('Could not auto-read this bill — please fill in the details manually.');
-  }
-  document.getElementById('receiptConfirmForm').style.display = 'grid';
-  document.getElementById('receiptBtnRow').style.display = 'flex';
-});
-
-async function uploadReceiptToSheet(id, dataUrl){
-  const base64 = dataUrl.split(',')[1];
-  const mimeType = dataUrl.substring(5, dataUrl.indexOf(';'));
-  const res = await fetch(SYNC_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'uploadReceipt', id, mimeType, base64 })
-  });
-  const data = await res.json();
-  if(data.status !== 'ok') throw new Error(data.message || 'upload failed');
-  return data.url;
-}
-
-async function deleteReceiptFromSheet(id){
-  try{
-    await fetch(SYNC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'deleteReceipt', id })
-    });
-  }catch(e){ console.error('Could not delete receipt photo from shared sheet', e); }
-}
-
-document.getElementById('confirmReceiptBtn').addEventListener('click', async () => {
-  const name = document.getElementById('rItemName').value.trim();
-  const category = document.getElementById('rCategory').value;
-  const amount = Number(document.getElementById('rAmount').value) || 0;
-  const date = document.getElementById('rDate').value || todayISO();
-  if(!name){ document.getElementById('rItemName').focus(); return; }
-
-  const id = uid();
-  entries.push({ id, name, category, amount, date, hasReceipt: !!currentReceiptImage });
-  await saveEntries();
-  render();
-  pushToSheet();
-
-  if(currentReceiptImage){
-    setReceiptStatus('Uploading photo so everyone can see it…');
-    try{
-      const url = await uploadReceiptToSheet(id, currentReceiptImage);
-      receiptUrlMap[id] = url;
-      await storage.set('receiptUrlMap', JSON.stringify(receiptUrlMap), true);
-    }catch(e){
-      console.error('Could not upload receipt photo', e);
-      alert('The entry was saved, but the photo could not be uploaded to the shared sheet. Check the sync status line and try again.');
-    }
-  }
-
-  resetReceiptUpload(true);
-  await loadReceiptGrid();
-});
-
-document.getElementById('discardReceiptBtn').addEventListener('click', () => {
-  resetReceiptUpload(true);
-});
-
-async function loadReceiptGrid(){
-  const grid = document.getElementById('receiptGrid');
-  grid.innerHTML = '';
-  const withReceipts = entries.filter(e => e.hasReceipt);
-  if(withReceipts.length === 0){
-    grid.innerHTML = '<div class="empty-state">No bill photos saved yet — upload one above.</div>';
-    return;
-  }
-  let renderedAny = false;
-  for(const e of withReceipts){
-    const imgSrc = receiptUrlMap[e.id];
-    if(!imgSrc) continue;
-    renderedAny = true;
-    const thumb = document.createElement('div');
-    thumb.className = 'receipt-thumb';
-    thumb.innerHTML = `<img src="${imgSrc}" alt="${escapeHtml(e.name)}" loading="lazy"><div class="receipt-thumb-label">${escapeHtml(e.name)}<br>${fmt(e.amount)}</div>`;
-    thumb.addEventListener('click', () => openLightbox(imgSrc, `${e.name} · ${e.category} · ${fmt(e.amount)} · ${fmtDate(e.date)}`));
-    grid.appendChild(thumb);
-  }
-  if(!renderedAny){
-    grid.innerHTML = '<div class="empty-state">No bill photos saved yet — upload one above.</div>';
-  }
-}
-
-function openLightbox(src, caption){
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightboxCaption').textContent = caption;
-  document.getElementById('lightbox').style.display = 'flex';
-}
-document.getElementById('lightboxClose').addEventListener('click', () => {
-  document.getElementById('lightbox').style.display = 'none';
-});
-document.getElementById('lightbox').addEventListener('click', (ev) => {
-  if(ev.target.id === 'lightbox') document.getElementById('lightbox').style.display = 'none';
-});
 
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxELJ5wcHVxtw9XOpJrJfucjERSfxwJzlCwX4O6P8s-h3C_tJF2r_fRWz7uMq1KC_CM/exec';
 
@@ -1116,25 +757,18 @@ async function pullFromSheet(){
       const base = {
         name: raw.name || raw.item || '',
         category: raw.category || 'Miscellaneous',
+        paidBy: raw.paidBy || '',
         amount: Number(raw.amount) || 0,
         date: raw.date || todayISO()
       };
       const existing = localByKey[buildEntryKey(base)];
-      if(raw.id){
-        return { ...base, id: raw.id, hasReceipt: !!raw.hasReceipt };
-      }
-      return existing
-        ? { ...base, id: existing.id, hasReceipt: !!existing.hasReceipt }
-        : { ...base, id: uid(), hasReceipt: false };
+      return { ...base, id: raw.id || (existing ? existing.id : uid()) };
     });
     budget = Number(data.budget) || 0;
-    receiptUrlMap = data.receipts || {};
     await saveEntries();
     await saveBudget();
-    try{ await storage.set('receiptUrlMap', JSON.stringify(receiptUrlMap), true); }catch(e){}
     document.getElementById('budgetInput').value = budget || '';
     render();
-    if(receiptsView.style.display !== 'none') loadReceiptGrid();
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
   }catch(e){
     setSyncStatus('☁ Could not reach shared sheet — showing data and photos saved on this device.');
@@ -1165,10 +799,6 @@ async function loadLocalCache(){
     const bres = await storage.get(BUDGET_KEY, false);
     budget = bres && bres.value ? JSON.parse(bres.value) : 0;
   }catch(e){ budget = 0; }
-  try{
-    const rres = await storage.get('receiptUrlMap', true);
-    receiptUrlMap = rres && rres.value ? JSON.parse(rres.value) : {};
-  }catch(e){ receiptUrlMap = {}; }
 }
 
 (async () => {
