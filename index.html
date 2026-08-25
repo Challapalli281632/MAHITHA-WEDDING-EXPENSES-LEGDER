@@ -1092,7 +1092,23 @@ async function pushToSheet(){
   }
 }
 
-pullFromSheet();
+async function loadLocalCache(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    entries = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ entries = []; }
+  try{
+    const bres = await window.storage.get(BUDGET_KEY, false);
+    budget = bres && bres.value ? JSON.parse(bres.value) : 0;
+  }catch(e){ budget = 0; }
+}
+
+(async () => {
+  await loadLocalCache();
+  document.getElementById('budgetInput').value = budget || '';
+  render();
+  await pullFromSheet();
+})();
 </script>
 </body>
 </html>
