@@ -265,6 +265,58 @@
   .bar-track{ height:9px; background:var(--cream-2); border-radius:5px; overflow:hidden; border:1px solid var(--ruled-line); }
   .bar-fill{ height:100%; background:linear-gradient(90deg, var(--turmeric), var(--maroon)); border-radius:5px; transition:width 0.4s ease; }
 
+  .invite{ padding:18px 20px 28px; display:none; }
+  .invite h2{ font-family:'Marcellus',serif; font-size:1.1rem; color:var(--maroon); margin:4px 0 10px; }
+  .invite .helper-text{ font-size:0.8rem; color:var(--ink-soft); margin:0 0 14px; line-height:1.4; }
+  .upload-box{
+    border:2px dashed var(--ruled-line); border-radius:8px; padding:22px 16px;
+    text-align:center; background:var(--cream-2); cursor:pointer; transition:border-color 0.15s ease;
+  }
+  .upload-box:hover{ border-color:var(--turmeric); }
+  .upload-box .upload-icon{ font-size:1.8rem; margin-bottom:6px; }
+  .upload-box .upload-label{ font-family:'Marcellus',serif; color:var(--maroon); font-size:0.9rem; }
+  .upload-box .upload-sub{ font-size:0.72rem; color:var(--ink-soft); margin-top:4px; }
+  #inviteImageInput{ display:none; }
+  .invite-preview-wrap{ margin-top:14px; text-align:center; }
+  .invite-preview-wrap img{ max-width:100%; max-height:280px; border-radius:6px; border:1px solid var(--ruled-line); }
+  .extract-btn{
+    margin-top:14px; width:100%; padding:11px; background:var(--maroon); color:var(--cream);
+    border:none; border-radius:5px; font-family:'Marcellus',serif; font-size:0.95rem;
+    letter-spacing:0.5px; cursor:pointer;
+  }
+  .extract-btn:hover{ background:var(--maroon-dark); }
+  .extract-btn:disabled{ opacity:0.6; cursor:default; }
+  .extract-status{ text-align:center; font-size:0.78rem; color:var(--ink-soft); margin-top:8px; font-style:italic; min-height:16px; }
+
+  .suggestions-box{
+    margin-top:18px; background:var(--cream-2); border:1px solid var(--turmeric); border-radius:8px; padding:14px 16px;
+  }
+  .suggestions-box h3{ font-family:'Marcellus',serif; font-size:0.9rem; color:var(--maroon); margin:0 0 8px; }
+  .suggestions-box ul{ margin:0; padding-left:18px; }
+  .suggestions-box li{ font-size:0.82rem; color:var(--ink); margin-bottom:6px; line-height:1.4; }
+
+  .guest-list-wrap{ margin-top:20px; }
+  .guest-list-wrap h3{ font-family:'Marcellus',serif; font-size:0.95rem; color:var(--maroon); margin:0 0 10px; display:flex; justify-content:space-between; align-items:center; }
+  .guest-header-row{
+    display:grid; grid-template-columns: 24px 1fr 0.7fr 0.7fr 0.9fr 44px;
+    gap:6px; padding:8px 10px; font-size:0.65rem; text-transform:uppercase;
+    letter-spacing:0.6px; color:var(--ink-soft); border-bottom:2px solid var(--turmeric);
+  }
+  .guest-row{
+    display:grid; grid-template-columns: 24px 1fr 0.7fr 0.7fr 0.9fr 44px;
+    gap:6px; padding:9px 10px; align-items:center; border-bottom:1px solid var(--ruled-line); font-size:0.85rem;
+  }
+  .guest-row input, .guest-row select{
+    width:100%; padding:5px 6px; border:1px solid var(--ruled-line); border-radius:4px;
+    background:#fff; font-family:'Karla',sans-serif; font-size:0.8rem; color:var(--ink);
+  }
+  .add-guest-btn{
+    margin-top:10px; padding:8px 14px; background:var(--cream-2); border:1px solid var(--maroon);
+    color:var(--maroon); border-radius:5px; font-family:'Marcellus',serif; font-size:0.8rem; cursor:pointer;
+  }
+  .add-guest-btn:hover{ background:var(--turmeric); }
+  .guest-export-row{ display:flex; gap:8px; margin-top:12px; }
+
   footer.note{ text-align:center; padding:16px 20px 4px; font-size:0.72rem; color:rgba(246,238,218,0.5); }
 
   @media (max-width:480px){
@@ -284,7 +336,7 @@
   @media print{
     body{ background:#fff; padding:0; }
     .book{ box-shadow:none; border-radius:0; max-width:100%; }
-    .toran, .add-entry, .tabs, .toolbar, .action-cell, footer.note, .budget-field{ display:none !important; }
+    .toran, .add-entry, .tabs, .toolbar, .action-cell, footer.note, .budget-field, .invite{ display:none !important; }
     .ledger-header-row, .entry-row{ grid-template-columns: 24px 1fr 0.75fr 0.75fr 0.75fr; }
   }
 </style>
@@ -319,6 +371,7 @@
   <div class="tabs">
     <button class="tab-btn active" id="tabLedgerBtn" data-tab="ledger">Ledger</button>
     <button class="tab-btn" id="tabDashboardBtn" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" id="tabInviteBtn" data-tab="invite">Invitations</button>
   </div>
 
   <div id="ledgerView">
@@ -406,15 +459,62 @@
     <div id="dashBars"></div>
   </div>
 
+  <div class="invite" id="inviteView">
+    <h2>Invitation List Reader</h2>
+    <p class="helper-text">Upload a photo of your handwritten or printed guest/invitation list. It'll be read automatically into an editable list below, along with suggestions to help you plan.</p>
+
+    <label class="upload-box" for="inviteImageInput">
+      <div class="upload-icon">📷</div>
+      <div class="upload-label">Tap to upload or take a photo</div>
+      <div class="upload-sub">JPG or PNG · list of guest names, works with handwritten pages too</div>
+    </label>
+    <input type="file" id="inviteImageInput" accept="image/*" capture="environment">
+
+    <div class="invite-preview-wrap" id="invitePreviewWrap" style="display:none;">
+      <img id="invitePreviewImg" alt="Uploaded invitation list preview">
+    </div>
+
+    <button class="extract-btn" id="extractInviteBtn" disabled>Read List from Photo</button>
+    <div class="extract-status" id="extractStatus"></div>
+
+    <div class="suggestions-box" id="suggestionsBox" style="display:none;">
+      <h3>Suggestions</h3>
+      <ul id="suggestionsList"></ul>
+    </div>
+
+    <div class="guest-list-wrap">
+      <h3><span>Guest List (<span id="guestCount">0</span>)</span></h3>
+      <div class="guest-header-row">
+        <div>#</div>
+        <div>Name</div>
+        <div>Side</div>
+        <div>Village</div>
+        <div>Contact</div>
+        <div></div>
+      </div>
+      <div id="guestListContainer">
+        <div class="empty-state" id="guestEmptyState">No guests yet — upload a photo above, or add names manually.</div>
+      </div>
+      <button class="add-guest-btn" id="addGuestBtn">+ Add guest manually</button>
+      <div class="guest-export-row">
+        <button class="export-btn" id="exportGuestCsvBtn">⬇ Download Guest List CSV</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="note">Saved automatically on this device · scroll up any time to update your budget</footer>
 </div>
 
 <script>
 const STORAGE_KEY = 'telugu-wedding-entries';
 const BUDGET_KEY = 'telugu-wedding-budget';
+const GUEST_KEY = 'telugu-wedding-guests';
 let entries = [];
 let budget = 0;
 let editingId = null;
+let guests = [];
+let pendingImageBase64 = null;
+let pendingImageMediaType = null;
 
 
 const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
@@ -722,17 +822,22 @@ document.getElementById('budgetInput').addEventListener('input', (ev) => {
 
 const tabLedgerBtn = document.getElementById('tabLedgerBtn');
 const tabDashboardBtn = document.getElementById('tabDashboardBtn');
+const tabInviteBtn = document.getElementById('tabInviteBtn');
 const ledgerView = document.getElementById('ledgerView');
 const dashboardView = document.getElementById('dashboardView');
+const inviteView = document.getElementById('inviteView');
 
 function switchTab(tab){
   tabLedgerBtn.classList.toggle('active', tab === 'ledger');
   tabDashboardBtn.classList.toggle('active', tab === 'dashboard');
+  tabInviteBtn.classList.toggle('active', tab === 'invite');
   ledgerView.style.display = tab === 'ledger' ? '' : 'none';
   dashboardView.style.display = tab === 'dashboard' ? 'block' : 'none';
+  inviteView.style.display = tab === 'invite' ? 'block' : 'none';
 }
 tabLedgerBtn.addEventListener('click', () => switchTab('ledger'));
 tabDashboardBtn.addEventListener('click', () => switchTab('dashboard'));
+tabInviteBtn.addEventListener('click', () => switchTab('invite'));
 
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxELJ5wcHVxtw9XOpJrJfucjERSfxwJzlCwX4O6P8s-h3C_tJF2r_fRWz7uMq1KC_CM/exec';
 
@@ -743,6 +848,10 @@ function setSyncStatus(msg){
 
 function buildEntryKey(e){
   return [e.date, (e.name || '').trim().toLowerCase(), e.category, Number(e.amount)].join('|');
+}
+
+function buildGuestKey(g){
+  return (g.name || '').trim().toLowerCase();
 }
 
 async function pullFromSheet(){
@@ -765,10 +874,21 @@ async function pullFromSheet(){
       return { ...base, id: raw.id || (existing ? existing.id : uid()) };
     });
     budget = Number(data.budget) || 0;
+
+    const localGuestByKey = {};
+    guests.forEach(g => { localGuestByKey[buildGuestKey(g)] = g; });
+    guests = (data.guests || []).map(raw => {
+      const base = { name: raw.name || '', side: raw.side || '', village: raw.village || '', contact: raw.contact || '' };
+      const existing = localGuestByKey[buildGuestKey(base)];
+      return { ...base, id: raw.id || (existing ? existing.id : guestUid()) };
+    });
+
     await saveEntries();
     await saveBudget();
+    await saveGuests();
     document.getElementById('budgetInput').value = budget || '';
     render();
+    renderGuests();
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
   }catch(e){
     setSyncStatus('☁ Could not reach shared sheet — showing data and photos saved on this device.');
@@ -781,7 +901,7 @@ async function pushToSheet(){
     const res = await fetch(SYNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ entries, budget })
+      body: JSON.stringify({ entries, budget, guests })
     });
     if(!res.ok) throw new Error('bad response');
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
@@ -799,12 +919,195 @@ async function loadLocalCache(){
     const bres = await storage.get(BUDGET_KEY, false);
     budget = bres && bres.value ? JSON.parse(bres.value) : 0;
   }catch(e){ budget = 0; }
+  try{
+    const gres = await storage.get(GUEST_KEY, false);
+    guests = gres && gres.value ? JSON.parse(gres.value) : [];
+  }catch(e){ guests = []; }
 }
+
+async function saveGuests(){
+  try{ await storage.set(GUEST_KEY, JSON.stringify(guests), false); }
+  catch(e){ console.error('Could not save guests', e); }
+}
+
+function guestUid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function renderGuests(){
+  const container = document.getElementById('guestListContainer');
+  container.innerHTML = '';
+  document.getElementById('guestCount').textContent = guests.length;
+
+  if(guests.length === 0){
+    container.innerHTML = '<div class="empty-state" id="guestEmptyState">No guests yet — upload a photo above, or add names manually.</div>';
+    return;
+  }
+
+  guests.forEach((g, idx) => {
+    const row = document.createElement('div');
+    row.className = 'guest-row';
+    row.innerHTML = `
+      <div class="sl-no">${idx+1}</div>
+      <input type="text" value="${escapeHtml(g.name || '')}" data-id="${g.id}" data-field="name" placeholder="Guest name">
+      <select data-id="${g.id}" data-field="side">
+        <option value="" ${!g.side ? 'selected':''}>—</option>
+        <option value="Groom's side" ${g.side==="Groom's side" ? 'selected':''}>Groom's side</option>
+        <option value="Bride's side" ${g.side==="Bride's side" ? 'selected':''}>Bride's side</option>
+        <option value="Both" ${g.side==="Both" ? 'selected':''}>Both</option>
+      </select>
+      <input type="text" value="${escapeHtml(g.village || '')}" data-id="${g.id}" data-field="village" placeholder="Village">
+      <input type="text" value="${escapeHtml(g.contact || '')}" data-id="${g.id}" data-field="contact" placeholder="Phone (optional)">
+      <button class="icon-btn del-btn" data-id="${g.id}" data-action="delete-guest" aria-label="Delete guest">✕</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+document.getElementById('guestListContainer').addEventListener('input', async (ev) => {
+  const field = ev.target.dataset.field;
+  const id = ev.target.dataset.id;
+  if(!field || !id) return;
+  const g = guests.find(x => x.id === id);
+  if(g){ g[field] = ev.target.value; await saveGuests(); }
+});
+document.getElementById('guestListContainer').addEventListener('change', async (ev) => {
+  const field = ev.target.dataset.field;
+  const id = ev.target.dataset.id;
+  if(!field || !id) return;
+  const g = guests.find(x => x.id === id);
+  if(g){ g[field] = ev.target.value; await saveGuests(); pushToSheet(); }
+});
+document.getElementById('guestListContainer').addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button');
+  if(!btn || btn.dataset.action !== 'delete-guest') return;
+  const id = btn.dataset.id;
+  const target = guests.find(g => g.id === id);
+  const label = target ? `"${target.name}"` : 'this guest';
+  if(!confirm(`Remove ${label} from the list?`)) return;
+  guests = guests.filter(g => g.id !== id);
+  await saveGuests();
+  renderGuests();
+  pushToSheet();
+});
+
+document.getElementById('addGuestBtn').addEventListener('click', async () => {
+  guests.push({ id: guestUid(), name: '', side: '', village: '', contact: '' });
+  await saveGuests();
+  renderGuests();
+  const inputs = document.querySelectorAll('#guestListContainer input[data-field="name"]');
+  if(inputs.length) inputs[inputs.length-1].focus();
+});
+
+document.getElementById('exportGuestCsvBtn').addEventListener('click', () => {
+  if(guests.length === 0){ alert('No guests to export.'); return; }
+  const header = ['Name','Side','Village','Contact'];
+  const rows = guests.map(g => [g.name || '', g.side || '', g.village || '', g.contact || '']);
+  const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wedding-invitation-list.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+function setExtractStatus(msg){
+  document.getElementById('extractStatus').textContent = msg;
+}
+
+document.getElementById('inviteImageInput').addEventListener('change', (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  pendingImageMediaType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result;
+    pendingImageBase64 = dataUrl.split(',')[1];
+    document.getElementById('invitePreviewImg').src = dataUrl;
+    document.getElementById('invitePreviewWrap').style.display = 'block';
+    document.getElementById('extractInviteBtn').disabled = false;
+    setExtractStatus('');
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('extractInviteBtn').addEventListener('click', async () => {
+  if(!pendingImageBase64) return;
+  const btn = document.getElementById('extractInviteBtn');
+  btn.disabled = true;
+  setExtractStatus('🔎 Reading names from the photo…');
+  document.getElementById('suggestionsBox').style.display = 'none';
+
+  try{
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        system: 'You read photos of wedding invitation / guest lists (handwritten or printed, may be in English or Telugu/transliterated Telugu). Extract every guest name you can find. Respond with ONLY a raw JSON object, no markdown fences, no preamble, in exactly this shape: {"guests":[{"name":"","side":"Groom\'s side | Bride\'s side | Both | ", "village":"", "contact":""}], "suggestions":["short actionable suggestion", "..."]}. For "side", only fill it in if the photo clearly groups/labels names that way; otherwise leave it as "". For "village", fill it in only if a village/town name is written next to that guest or as a section heading grouping guests; otherwise leave it as "". For "contact", only fill it in if a phone number is written next to that name; otherwise leave it as "". Suggestions should be 3-6 short, practical tips about the guest list itself (e.g. duplicates you spot, unclear names worth double-checking, groups that seem missing like close relatives, or organizational tips) — not generic wedding advice.',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: pendingImageMediaType, data: pendingImageBase64 } },
+              { type: 'text', text: 'Extract the guest/invitation list from this photo and return the JSON as instructed.' }
+            ]
+          }
+        ]
+      })
+    });
+
+    if(!response.ok) throw new Error('API error ' + response.status);
+    const data = await response.json();
+    const textBlock = (data.content || []).map(b => b.text || '').join('\n');
+    const cleaned = textBlock.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    const existingNames = new Set(guests.map(g => (g.name || '').trim().toLowerCase()).filter(Boolean));
+    let added = 0;
+    (parsed.guests || []).forEach(g => {
+      const name = (g.name || '').trim();
+      if(!name) return;
+      const key = name.toLowerCase();
+      if(existingNames.has(key)) return;
+      existingNames.add(key);
+      guests.push({ id: guestUid(), name, side: g.side || '', village: g.village || '', contact: g.contact || '' });
+      added++;
+    });
+
+    await saveGuests();
+    renderGuests();
+    if(added > 0) pushToSheet();
+
+    const suggestions = parsed.suggestions || [];
+    const sugList = document.getElementById('suggestionsList');
+    sugList.innerHTML = '';
+    if(suggestions.length){
+      suggestions.forEach(s => {
+        const li = document.createElement('li');
+        li.textContent = s;
+        sugList.appendChild(li);
+      });
+      document.getElementById('suggestionsBox').style.display = 'block';
+    }
+
+    setExtractStatus(added > 0 ? `✓ Added ${added} name${added===1?'':'s'} from the photo.` : 'No new names found — they may already be in your list, or try a clearer photo.');
+  }catch(e){
+    console.error(e);
+    setExtractStatus('Could not read the photo right now. Please try again, or add names manually below.');
+  }finally{
+    btn.disabled = false;
+  }
+});
 
 (async () => {
   await loadLocalCache();
   document.getElementById('budgetInput').value = budget || '';
   render();
+  renderGuests();
   await pullFromSheet();
 })();
 </script>
