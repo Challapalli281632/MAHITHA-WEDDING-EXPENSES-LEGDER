@@ -345,7 +345,7 @@
             <option>Photography & Video</option>
             <option>Return Gifts</option>
             <option>Transport & Accommodation</option>
-            <option>Miscellaneous</option>
+            <option>Other Purchases</option>
           </select>
         </div>
         <div>
@@ -756,7 +756,7 @@ async function pullFromSheet(){
     entries = (data.entries || []).map(raw => {
       const base = {
         name: raw.name || raw.item || '',
-        category: raw.category || 'Miscellaneous',
+        category: raw.category || 'Other Purchases',
         paidBy: raw.paidBy || '',
         amount: Number(raw.amount) || 0,
         date: raw.date || todayISO()
