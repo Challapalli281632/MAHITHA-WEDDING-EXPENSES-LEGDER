@@ -243,6 +243,9 @@
     border-radius:10px; background:var(--cream-2); color:var(--maroon); border:1px solid var(--ruled-line);
   }
   .entry-desc .paidby-tag{ font-size:0.68rem; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .mode-tag{ font-size:0.65rem; padding:2px 7px; border-radius:10px; border:1px solid var(--ruled-line); }
+  .mode-tag.mode-online{ background:#E3EEE0; color:var(--leaf-dark); border-color:var(--leaf); }
+  .mode-tag.mode-cash{ background:#F3E6C9; color:var(--maroon); border-color:var(--turmeric); }
   .amt{ font-family:'IBM Plex Mono',monospace; text-align:right; font-weight:600; }
   .date-cell{ text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .paidby-cell{ text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -265,6 +268,27 @@
   .bar-track{ height:9px; background:var(--cream-2); border-radius:5px; overflow:hidden; border:1px solid var(--ruled-line); }
   .bar-fill{ height:100%; background:linear-gradient(90deg, var(--turmeric), var(--maroon)); border-radius:5px; transition:width 0.4s ease; }
 
+  .person-tab{ padding:20px 20px 28px; display:none; }
+  .person-tab h2{ font-family:'Marcellus',serif; font-size:1.1rem; color:var(--maroon); margin:4px 0 14px; }
+  .person-select-row{ margin-bottom:18px; }
+  .person-select-row label{
+    display:block; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.6px;
+    color:var(--ink-soft); margin-bottom:5px;
+  }
+  .person-select-row select{
+    width:100%; padding:10px; border:1px solid var(--ruled-line); border-radius:4px;
+    background:#fff; font-family:'Karla',sans-serif; font-size:0.95rem; color:var(--ink);
+  }
+  .person-select-row select:focus{ outline:2px solid var(--turmeric); border-color:var(--turmeric); }
+  .person-summary-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:18px; }
+  .person-split-row{ margin-bottom:18px; }
+  .authenticity-box{
+    background:var(--cream-2); border:1px solid var(--turmeric); border-radius:8px;
+    padding:12px 14px; margin-bottom:20px; font-size:0.8rem; color:var(--ink); line-height:1.5;
+  }
+  .authenticity-box strong{ color:var(--maroon); }
+  .person-items-wrap h3{ font-family:'Marcellus',serif; font-size:0.95rem; color:var(--maroon); margin:0 0 8px; }
+
   .invite{ padding:18px 20px 28px; display:none; }
   .invite h2{ font-family:'Marcellus',serif; font-size:1.1rem; color:var(--maroon); margin:4px 0 10px; }
   .invite .helper-text{ font-size:0.8rem; color:var(--ink-soft); margin:0 0 14px; line-height:1.4; }
@@ -279,6 +303,13 @@
   #inviteImageInput{ display:none; }
   .invite-preview-wrap{ margin-top:14px; text-align:center; }
   .invite-preview-wrap img{ max-width:100%; max-height:280px; border-radius:6px; border:1px solid var(--ruled-line); }
+  .upload-divider{
+    display:flex; align-items:center; gap:10px; margin:20px 0;
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:1px; color:var(--ink-soft);
+  }
+  .upload-divider::before, .upload-divider::after{
+    content:""; flex:1; height:1px; background:var(--ruled-line);
+  }
   .extract-btn{
     margin-top:14px; width:100%; padding:11px; background:var(--maroon); color:var(--cream);
     border:none; border-radius:5px; font-family:'Marcellus',serif; font-size:0.95rem;
@@ -336,7 +367,7 @@
   @media print{
     body{ background:#fff; padding:0; }
     .book{ box-shadow:none; border-radius:0; max-width:100%; }
-    .toran, .add-entry, .tabs, .toolbar, .action-cell, footer.note, .budget-field, .invite{ display:none !important; }
+    .toran, .add-entry, .tabs, .toolbar, .action-cell, footer.note, .budget-field, .invite, .person-tab{ display:none !important; }
     .ledger-header-row, .entry-row{ grid-template-columns: 24px 1fr 0.75fr 0.75fr 0.75fr; }
   }
 </style>
@@ -371,6 +402,7 @@
   <div class="tabs">
     <button class="tab-btn active" id="tabLedgerBtn" data-tab="ledger">Ledger</button>
     <button class="tab-btn" id="tabDashboardBtn" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" id="tabPersonBtn" data-tab="person">By Person</button>
     <button class="tab-btn" id="tabInviteBtn" data-tab="invite">Invitations</button>
   </div>
 
@@ -419,6 +451,13 @@
           <label for="paidAmount">Amount Paid (₹)</label>
           <input type="number" id="paidAmount" placeholder="0" min="0" step="100">
         </div>
+        <div class="full">
+          <label for="paymentMode">Payment Mode</label>
+          <select id="paymentMode">
+            <option value="Cash">Cash</option>
+            <option value="Online">Online</option>
+          </select>
+        </div>
       </div>
       <button class="add-btn" id="addBtn">+ Add to Ledger</button>
     </div>
@@ -459,9 +498,20 @@
     <div id="dashBars"></div>
   </div>
 
+  <div class="person-tab" id="personView">
+    <h2>Expenditure by Person</h2>
+    <div class="person-select-row">
+      <label for="personSelect">Select person</label>
+      <select id="personSelect"><option value="">— choose a person —</option></select>
+    </div>
+    <div id="personContent">
+      <div class="empty-state">Select a person above to see their expenditure.</div>
+    </div>
+  </div>
+
   <div class="invite" id="inviteView">
     <h2>Invitation List Reader</h2>
-    <p class="helper-text">Upload a photo of your handwritten or printed guest/invitation list. It'll be read automatically into an editable list below, along with suggestions to help you plan.</p>
+    <p class="helper-text">Upload a photo, or an Excel/Word/PDF file, of your guest/invitation list. It'll be read automatically into an editable list below — you can fix or add names any time.</p>
 
     <label class="upload-box" for="inviteImageInput">
       <div class="upload-icon">📷</div>
@@ -482,8 +532,19 @@
       <ul id="suggestionsList"></ul>
     </div>
 
+    <div class="upload-divider">or</div>
+
+    <label class="upload-box" for="inviteFileInput">
+      <div class="upload-icon">📄</div>
+      <div class="upload-label">Tap to upload an Excel, Word, or PDF file</div>
+      <div class="upload-sub">.xlsx, .xls, .csv, .docx or .pdf · works with columns like Name/Side/Village/Contact, or just a plain list of names</div>
+    </label>
+    <input type="file" id="inviteFileInput" accept=".xlsx,.xls,.csv,.docx,.pdf">
+    <div class="extract-status" id="fileExtractStatus"></div>
+
     <div class="guest-list-wrap">
       <h3><span>Guest List (<span id="guestCount">0</span>)</span></h3>
+      <p class="helper-text" style="margin:-4px 0 10px;">Tap any name, side, village or contact below to edit it directly.</p>
       <div class="guest-header-row">
         <div>#</div>
         <div>Name</div>
@@ -493,7 +554,7 @@
         <div></div>
       </div>
       <div id="guestListContainer">
-        <div class="empty-state" id="guestEmptyState">No guests yet — upload a photo above, or add names manually.</div>
+        <div class="empty-state" id="guestEmptyState">No guests yet — upload a photo or file above, or add names manually.</div>
       </div>
       <button class="add-guest-btn" id="addGuestBtn">+ Add guest manually</button>
       <div class="guest-export-row">
@@ -505,7 +566,13 @@
   <footer class="note">Saved automatically on this device · scroll up any time to update your budget</footer>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
 const STORAGE_KEY = 'telugu-wedding-entries';
 const BUDGET_KEY = 'telugu-wedding-budget';
 const GUEST_KEY = 'telugu-wedding-guests';
@@ -634,6 +701,7 @@ function render(){
           <div class="item-name">${escapeHtml(e.name)}</div>
           <div class="meta-row">
             <span class="cat-tag">${escapeHtml(e.category)}</span>
+            <span class="mode-tag mode-${(e.paymentMode || 'Cash').toLowerCase()}">${escapeHtml(e.paymentMode || 'Cash')}</span>
           </div>
         </div>
         <div class="amt">${fmt(e.amount)}</div>
@@ -664,6 +732,119 @@ function render(){
   }
 
   renderDashboard(totalSpent);
+  populatePersonSelect();
+  renderPersonView();
+}
+
+function populatePersonSelect(){
+  const sel = document.getElementById('personSelect');
+  if(!sel) return;
+  const current = sel.value;
+  const masterNames = Array.from(document.getElementById('paidBy').options).map(o => o.value);
+  const entryNames = entries.map(e => e.paidBy);
+  const names = Array.from(new Set([...masterNames, ...entryNames])).filter(Boolean).sort();
+  sel.innerHTML = '<option value="">— choose a person —</option>' + names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  sel.value = names.includes(current) ? current : '';
+}
+
+function computePersonStats(name){
+  const list = entries.filter(e => (e.paidBy || '') === name);
+  const total = list.reduce((s,e) => s + Number(e.amount || 0), 0);
+  const cash = list.filter(e => (e.paymentMode || 'Cash') === 'Cash').reduce((s,e) => s + Number(e.amount || 0), 0);
+  const online = list.filter(e => e.paymentMode === 'Online').reduce((s,e) => s + Number(e.amount || 0), 0);
+  const grandTotal = entries.reduce((s,e) => s + Number(e.amount || 0), 0);
+  const dates = list.map(e => e.date).filter(Boolean).sort();
+  const largeCash = list
+    .filter(e => (e.paymentMode || 'Cash') === 'Cash' && Number(e.amount || 0) >= 5000)
+    .sort((a,b) => Number(b.amount) - Number(a.amount));
+  return { list, total, cash, online, grandTotal, dates, largeCash };
+}
+
+function renderPersonView(){
+  const sel = document.getElementById('personSelect');
+  const content = document.getElementById('personContent');
+  if(!sel || !content) return;
+  const name = sel.value;
+
+  if(!name){
+    content.innerHTML = '<div class="empty-state">Select a person above to see their expenditure.</div>';
+    return;
+  }
+
+  const s = computePersonStats(name);
+  if(s.list.length === 0){
+    content.innerHTML = `<div class="empty-state">${escapeHtml(name)} has no recorded expenditure yet.</div>`;
+    return;
+  }
+
+  const pctOfTotal = s.grandTotal > 0 ? Math.round((s.total / s.grandTotal) * 100) : 0;
+  const cashPct = s.total > 0 ? Math.round((s.cash / s.total) * 100) : 0;
+  const onlinePct = s.total > 0 ? Math.round((s.online / s.total) * 100) : 0;
+  const avg = s.list.length ? s.total / s.list.length : 0;
+  const first = s.dates[0], last = s.dates[s.dates.length - 1];
+
+  const sortedList = s.list.slice().sort((a,b) => b.date.localeCompare(a.date));
+
+  let html = `
+    <div class="person-summary-grid">
+      <div class="dash-card">
+        <div class="cat-name">Total Spent by ${escapeHtml(name)}</div>
+        <div class="cat-amt">${fmt(s.total)}</div>
+        <div class="cat-meta"><span>${s.list.length} ${s.list.length === 1 ? 'entry' : 'entries'}</span><span>${pctOfTotal}% of overall spend</span></div>
+      </div>
+      <div class="dash-card">
+        <div class="cat-name">Average per Entry</div>
+        <div class="cat-amt">${fmt(avg)}</div>
+        <div class="cat-meta"><span>${fmtDate(first)}${first !== last ? ' → ' + fmtDate(last) : ''}</span></div>
+      </div>
+    </div>
+    <div class="person-split-row">
+      <div class="bar-row">
+        <div class="bar-label"><span>💵 Cash</span><span>${fmt(s.cash)} · ${cashPct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${cashPct}%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>💳 Online</span><span>${fmt(s.online)} · ${onlinePct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${onlinePct}%"></div></div>
+      </div>
+    </div>
+    <div class="authenticity-box">
+      ${s.largeCash.length
+        ? `<strong>⚠ Worth tracking:</strong> ${s.largeCash.length} cash payment${s.largeCash.length === 1 ? '' : 's'} of ₹5,000+ by ${escapeHtml(name)} — ${s.largeCash.slice(0,3).map(e => `"${escapeHtml(e.name)}" (${fmt(e.amount)})`).join(', ')}${s.largeCash.length > 3 ? ', and more' : ''}. Cash is harder to reconcile than online payments, so it's worth keeping receipts for these.`
+        : `<strong>✓ Good sign:</strong> ${escapeHtml(name)} has no large (₹5,000+) cash payments — most spending is either online or in smaller, easier-to-track cash amounts.`}
+    </div>
+    <div class="person-items-wrap">
+      <h3>Item-wise Expenditure</h3>
+      <div class="ledger-header-row">
+        <div>#</div>
+        <div>Item</div>
+        <div style="text-align:right;">Paid</div>
+        <div style="text-align:center;">Date</div>
+        <div style="text-align:center;">Mode</div>
+        <div></div>
+      </div>
+  `;
+
+  sortedList.forEach((e, idx) => {
+    html += `
+      <div class="entry-row">
+        <div class="sl-no">${idx+1}</div>
+        <div class="entry-desc">
+          <div class="item-name">${escapeHtml(e.name)}</div>
+          <div class="meta-row">
+            <span class="cat-tag">${escapeHtml(e.category)}</span>
+          </div>
+        </div>
+        <div class="amt">${fmt(e.amount)}</div>
+        <div class="date-cell" style="text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap;">${fmtDate(e.date)}</div>
+        <div class="paidby-cell"><span class="mode-tag mode-${(e.paymentMode || 'Cash').toLowerCase()}">${escapeHtml(e.paymentMode || 'Cash')}</span></div>
+        <div></div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  content.innerHTML = html;
 }
 
 function renderDashboard(totalSpent){
@@ -720,6 +901,7 @@ function resetForm(){
   document.getElementById('entryDate').value = todayISO();
   document.getElementById('category').selectedIndex = 0;
   document.getElementById('paidBy').selectedIndex = 0;
+  document.getElementById('paymentMode').selectedIndex = 0;
   document.getElementById('addBtn').textContent = '+ Add to Ledger';
   document.getElementById('addBtn').classList.remove('editing');
   document.getElementById('formTitle').textContent = 'Add an entry';
@@ -732,6 +914,7 @@ document.getElementById('addBtn').addEventListener('click', async () => {
   const paidBy = document.getElementById('paidBy').value;
   const amount = Number(document.getElementById('paidAmount').value) || 0;
   const date = document.getElementById('entryDate').value || todayISO();
+  const paymentMode = document.getElementById('paymentMode').value || 'Cash';
 
   if(!name){
     document.getElementById('itemName').focus();
@@ -742,9 +925,10 @@ document.getElementById('addBtn').addEventListener('click', async () => {
     const target = entries.find(e => e.id === editingId);
     if(target){
       target.name = name; target.category = category; target.paidBy = paidBy; target.amount = amount; target.date = date;
+      target.paymentMode = paymentMode;
     }
   } else {
-    entries.push({ id: uid(), name, category, paidBy, amount, date });
+    entries.push({ id: uid(), name, category, paidBy, amount, date, paymentMode });
   }
 
   await saveEntries();
@@ -780,6 +964,7 @@ document.getElementById('entriesContainer').addEventListener('click', async (ev)
     document.getElementById('paidBy').value = target.paidBy || '';
     document.getElementById('paidAmount').value = target.amount;
     document.getElementById('entryDate').value = target.date;
+    document.getElementById('paymentMode').value = target.paymentMode || 'Cash';
     document.getElementById('addBtn').textContent = 'Update Entry';
     document.getElementById('addBtn').classList.add('editing');
     document.getElementById('formTitle').textContent = 'Editing entry';
@@ -795,8 +980,8 @@ document.getElementById('sortSelect').addEventListener('change', render);
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   const list = getFilteredSorted();
   if(list.length === 0){ alert('No entries to export.'); return; }
-  const header = ['Date','Item','Category','Paid By','Amount (INR)'];
-  const rows = list.map(e => [fmtDate(e.date), e.name.replace(/"/g,'""'), e.category, e.paidBy || '', e.amount]);
+  const header = ['Date','Item','Category','Paid By','Payment Mode','Amount (INR)'];
+  const rows = list.map(e => [fmtDate(e.date), e.name.replace(/"/g,'""'), e.category, e.paidBy || '', e.paymentMode || 'Cash', e.amount]);
   const csv = [header, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -822,22 +1007,30 @@ document.getElementById('budgetInput').addEventListener('input', (ev) => {
 
 const tabLedgerBtn = document.getElementById('tabLedgerBtn');
 const tabDashboardBtn = document.getElementById('tabDashboardBtn');
+const tabPersonBtn = document.getElementById('tabPersonBtn');
 const tabInviteBtn = document.getElementById('tabInviteBtn');
 const ledgerView = document.getElementById('ledgerView');
 const dashboardView = document.getElementById('dashboardView');
+const personView = document.getElementById('personView');
 const inviteView = document.getElementById('inviteView');
 
 function switchTab(tab){
   tabLedgerBtn.classList.toggle('active', tab === 'ledger');
   tabDashboardBtn.classList.toggle('active', tab === 'dashboard');
+  tabPersonBtn.classList.toggle('active', tab === 'person');
   tabInviteBtn.classList.toggle('active', tab === 'invite');
   ledgerView.style.display = tab === 'ledger' ? '' : 'none';
   dashboardView.style.display = tab === 'dashboard' ? 'block' : 'none';
+  personView.style.display = tab === 'person' ? 'block' : 'none';
   inviteView.style.display = tab === 'invite' ? 'block' : 'none';
+  if(tab === 'person'){ populatePersonSelect(); renderPersonView(); }
 }
 tabLedgerBtn.addEventListener('click', () => switchTab('ledger'));
 tabDashboardBtn.addEventListener('click', () => switchTab('dashboard'));
+tabPersonBtn.addEventListener('click', () => switchTab('person'));
 tabInviteBtn.addEventListener('click', () => switchTab('invite'));
+
+document.getElementById('personSelect').addEventListener('change', renderPersonView);
 
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxELJ5wcHVxtw9XOpJrJfucjERSfxwJzlCwX4O6P8s-h3C_tJF2r_fRWz7uMq1KC_CM/exec';
 
@@ -868,7 +1061,8 @@ async function pullFromSheet(){
         category: raw.category || 'Other Purchases',
         paidBy: raw.paidBy || '',
         amount: Number(raw.amount) || 0,
-        date: raw.date || todayISO()
+        date: raw.date || todayISO(),
+        paymentMode: raw.paymentMode || 'Cash'
       };
       const existing = localByKey[buildEntryKey(base)];
       return { ...base, id: raw.id || (existing ? existing.id : uid()) };
@@ -1100,6 +1294,186 @@ document.getElementById('extractInviteBtn').addEventListener('click', async () =
     setExtractStatus('Could not read the photo right now. Please try again, or add names manually below.');
   }finally{
     btn.disabled = false;
+  }
+});
+
+/* ---- Excel / Word guest-list import ---- */
+
+const HEADER_ALIASES = {
+  name: ['name','guest name','guest','full name','invitee'],
+  side: ['side','group','groom/bride','groom or bride'],
+  village: ['village','town','place','location','city','native'],
+  contact: ['contact','phone','mobile','number','phone number','contact number','mobile number']
+};
+
+const PHONE_RE = /(\+?\d[\d\s-]{7,}\d)/;
+
+function setFileExtractStatus(msg){
+  document.getElementById('fileExtractStatus').textContent = msg;
+}
+
+function detectHeaderRow(row){
+  const lower = row.map(c => (c || '').toLowerCase().trim());
+  const map = {};
+  Object.keys(HEADER_ALIASES).forEach(key => {
+    const idx = lower.findIndex(c => HEADER_ALIASES[key].includes(c));
+    if(idx !== -1) map[key] = idx;
+  });
+  return map.name !== undefined ? map : null;
+}
+
+function guessSideFromText(text){
+  const t = text.toLowerCase();
+  if(t.includes('groom')) return "Groom's side";
+  if(t.includes('bride')) return "Bride's side";
+  if(t.includes('both')) return 'Both';
+  return '';
+}
+
+/* Turns raw rows (array of arrays of strings) into {name, side, village, contact}
+   objects. Uses a header row if one is recognized (Name/Side/Village/Contact and
+   close variants); otherwise treats the first cell of every row as the name and
+   makes a best guess at the rest — a phone-looking value becomes Contact, a
+   groom/bride/both mention becomes Side, anything left over becomes Village. */
+function rowsToGuestObjects(rows){
+  if(!rows || rows.length === 0) return [];
+  const headerMap = detectHeaderRow(rows[0]);
+  const dataRows = headerMap ? rows.slice(1) : rows;
+
+  return dataRows.map(row => {
+    if(headerMap){
+      const name = (row[headerMap.name] || '').trim();
+      if(!name) return null;
+      return {
+        name,
+        side: headerMap.side !== undefined ? (row[headerMap.side] || '').trim() : '',
+        village: headerMap.village !== undefined ? (row[headerMap.village] || '').trim() : '',
+        contact: headerMap.contact !== undefined ? (row[headerMap.contact] || '').trim() : ''
+      };
+    }
+    const cells = row.slice();
+    const name = (cells.shift() || '').trim();
+    if(!name) return null;
+    let side = '', contact = '', village = '';
+    cells.forEach(cell => {
+      const c = (cell || '').trim();
+      if(!c) return;
+      if(!contact && PHONE_RE.test(c)){ contact = c; return; }
+      if(!side){ const guessed = guessSideFromText(c); if(guessed){ side = guessed; return; } }
+      if(!village) village = c;
+    });
+    return { name, side, village, contact };
+  }).filter(Boolean);
+}
+
+function mergeGuestObjectsIntoList(parsed){
+  const existingNames = new Set(guests.map(g => (g.name || '').trim().toLowerCase()).filter(Boolean));
+  let added = 0;
+  parsed.forEach(g => {
+    const name = (g.name || '').trim();
+    if(!name) return;
+    const key = name.toLowerCase();
+    if(existingNames.has(key)) return;
+    existingNames.add(key);
+    guests.push({ id: guestUid(), name, side: g.side || '', village: g.village || '', contact: g.contact || '' });
+    added++;
+  });
+  return added;
+}
+
+async function extractRowsFromSpreadsheet(file){
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type:'array' });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header:1, raw:false, defval:'' });
+  return rows.map(r => r.map(c => String(c == null ? '' : c).trim())).filter(r => r.some(c => c));
+}
+
+async function extractRowsFromDocx(file){
+  const buf = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buf });
+  const lines = result.value.split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.map(line => {
+    const parts = line.includes('\t') ? line.split('\t') : line.split(',');
+    return parts.map(p => p.trim()).filter(p => p !== '');
+  });
+}
+
+/* Groups a PDF's text items into visual lines (by y-position), then splits each
+   line into "columns" wherever there's an unusually wide horizontal gap between
+   words — a reasonable stand-in for real table columns since PDFs don't expose
+   tabular structure directly. */
+async function extractRowsFromPdf(file){
+  if(!window.pdfjsLib) throw new Error('PDF reader not available');
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const lineGroups = [];
+
+  for(let p = 1; p <= pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const items = content.items
+      .map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5] }))
+      .filter(i => i.str && i.str.trim());
+    items.sort((a,b) => b.y - a.y || a.x - b.x);
+
+    let currentY = null, currentLine = [];
+    items.forEach(item => {
+      if(currentY === null || Math.abs(item.y - currentY) > 3){
+        if(currentLine.length) lineGroups.push(currentLine);
+        currentLine = [item];
+        currentY = item.y;
+      } else {
+        currentLine.push(item);
+      }
+    });
+    if(currentLine.length) lineGroups.push(currentLine);
+  }
+
+  return lineGroups.map(lineItems => {
+    lineItems.sort((a,b) => a.x - b.x);
+    const parts = [];
+    let cur = '', lastEndX = null;
+    lineItems.forEach(item => {
+      if(lastEndX !== null && (item.x - lastEndX) > 18){
+        if(cur.trim()) parts.push(cur.trim());
+        cur = '';
+      }
+      cur += (cur ? ' ' : '') + item.str;
+      lastEndX = item.x + Math.max(item.str.length * 5, 10);
+    });
+    if(cur.trim()) parts.push(cur.trim());
+    return parts;
+  }).filter(r => r.some(c => c));
+}
+
+document.getElementById('inviteFileInput').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+
+  setFileExtractStatus('🔎 Reading ' + file.name + '…');
+  try{
+    let rows;
+    if(ext === 'docx') rows = await extractRowsFromDocx(file);
+    else if(ext === 'pdf') rows = await extractRowsFromPdf(file);
+    else rows = await extractRowsFromSpreadsheet(file);
+
+    const parsed = rowsToGuestObjects(rows);
+    const added = mergeGuestObjectsIntoList(parsed);
+
+    await saveGuests();
+    renderGuests();
+    if(added > 0) pushToSheet();
+
+    setFileExtractStatus(added > 0
+      ? `✓ Added ${added} name${added===1?'':'s'} from ${file.name}.`
+      : `No new names found in ${file.name} — they may already be in your list, or the file may need a "Name" column/heading.`);
+  }catch(e){
+    console.error(e);
+    setFileExtractStatus('Could not read that file. Please check it\'s a valid .xlsx/.xls/.csv/.docx/.pdf, or add names manually below.');
+  }finally{
+    ev.target.value = '';
   }
 });
 
