@@ -1089,7 +1089,10 @@ function dedupeEntries(list){
 async function pullFromSheet(){
   try{
     setSyncStatus('☁ Loading shared data…');
-    const res = await fetch(SYNC_URL);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+    const res = await fetch(SYNC_URL, { signal: controller.signal });
+    clearTimeout(timer);
     if(!res.ok) throw new Error('bad response');
     const data = await res.json();
     const localByKey = {};
@@ -1140,16 +1143,20 @@ async function pullFromSheet(){
 async function pushToSheet(){
   try{
     setSyncStatus('☁ Saving…');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
     const res = await fetch(SYNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ entries, budget, guests }),
-      keepalive: true
+      keepalive: true,
+      signal: controller.signal
     });
+    clearTimeout(timer);
     if(!res.ok) throw new Error('bad response');
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
   }catch(e){
-    setSyncStatus('☁ Saved on this device — will retry syncing to the sheet.');
+    setSyncStatus('☁ Saved on this device — could not reach the shared sheet, will retry next time.');
   }
 }
 
