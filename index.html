@@ -472,6 +472,8 @@
     <div class="toolbar">
       <input type="text" id="searchInput" placeholder="Search by item name…">
       <select id="filterCategory"><option value="">All categories</option></select>
+      <input type="number" id="minAmountFilter" placeholder="Min ₹" min="0" step="1" inputmode="numeric">
+      <input type="number" id="maxAmountFilter" placeholder="Max ₹" min="0" step="1" inputmode="numeric">
       <select id="sortSelect" class="full">
         <option value="date-desc">Sort: Newest first</option>
         <option value="date-asc">Sort: Oldest first</option>
@@ -675,11 +677,18 @@ function getFilteredSorted(){
   const search = document.getElementById('searchInput').value.trim().toLowerCase();
   const catFilter = document.getElementById('filterCategory').value;
   const sortVal = document.getElementById('sortSelect').value;
+  const minAmountRaw = document.getElementById('minAmountFilter').value;
+  const maxAmountRaw = document.getElementById('maxAmountFilter').value;
+  const minAmount = minAmountRaw !== '' ? Number(minAmountRaw) : null;
+  const maxAmount = maxAmountRaw !== '' ? Number(maxAmountRaw) : null;
 
   let list = entries.filter(e => {
     const matchesSearch = !search || e.name.toLowerCase().includes(search);
     const matchesCat = !catFilter || e.category === catFilter;
-    return matchesSearch && matchesCat;
+    const amt = Number(e.amount) || 0;
+    const matchesMin = minAmount === null || amt >= minAmount;
+    const matchesMax = maxAmount === null || amt <= maxAmount;
+    return matchesSearch && matchesCat && matchesMin && matchesMax;
   });
 
   list.sort((a,b) => {
@@ -1001,6 +1010,8 @@ document.getElementById('entriesContainer').addEventListener('click', async (ev)
 });
 
 document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('minAmountFilter').addEventListener('input', render);
+document.getElementById('maxAmountFilter').addEventListener('input', render);
 document.getElementById('filterCategory').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
 
