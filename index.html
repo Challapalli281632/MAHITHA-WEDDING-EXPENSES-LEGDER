@@ -249,10 +249,17 @@
   .amt{ font-family:'IBM Plex Mono',monospace; text-align:right; font-weight:600; }
   .date-cell{ text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .paidby-cell{ text-align:center; font-size:0.85rem; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .action-cell{ display:flex; flex-direction:column; gap:4px; align-items:center; }
-  .icon-btn{ background:none; border:none; cursor:pointer; font-size:0.95rem; line-height:1; color:var(--ink-soft); }
-  .icon-btn.edit-btn:hover{ color:var(--leaf-dark); }
-  .icon-btn.del-btn:hover{ color:var(--rose); }
+  .action-cell{ display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .icon-btn{
+    background:var(--cream-2); border:1px solid var(--ruled-line); border-radius:7px;
+    cursor:pointer; font-size:0.9rem; line-height:1; color:var(--ink-soft);
+    width:34px; height:34px; padding:0; display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .icon-btn.edit-btn{ color:var(--leaf-dark); }
+  .icon-btn.edit-btn:hover, .icon-btn.edit-btn:active{ background:#E3EEE0; border-color:var(--leaf); }
+  .icon-btn.del-btn{ color:var(--rose); }
+  .icon-btn.del-btn:hover, .icon-btn.del-btn:active{ background:#F7E1E1; border-color:var(--rose); }
 
   .empty-state{ text-align:center; padding:40px 20px; color:var(--ink-soft); font-style:italic; }
 
@@ -593,7 +600,13 @@ const fmtDate = (iso) => {
   if(isNaN(d)) return iso;
   return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
 };
-const todayISO = () => new Date().toISOString().slice(0,10);
+const todayISO = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
 /* Storage: use Claude.ai's window.storage when available (e.g. running as an
@@ -908,7 +921,10 @@ function resetForm(){
   document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
+let isSubmittingEntry = false;
 document.getElementById('addBtn').addEventListener('click', async () => {
+  if(isSubmittingEntry) return;
+
   const name = document.getElementById('itemName').value.trim();
   const category = document.getElementById('category').value;
   const paidBy = document.getElementById('paidBy').value;
@@ -921,20 +937,29 @@ document.getElementById('addBtn').addEventListener('click', async () => {
     return;
   }
 
-  if(editingId){
-    const target = entries.find(e => e.id === editingId);
-    if(target){
-      target.name = name; target.category = category; target.paidBy = paidBy; target.amount = amount; target.date = date;
-      target.paymentMode = paymentMode;
-    }
-  } else {
-    entries.push({ id: uid(), name, category, paidBy, amount, date, paymentMode });
-  }
+  isSubmittingEntry = true;
+  const addBtnEl = document.getElementById('addBtn');
+  addBtnEl.disabled = true;
 
-  await saveEntries();
-  resetForm();
-  render();
-  pushToSheet();
+  try{
+    if(editingId){
+      const target = entries.find(e => e.id === editingId);
+      if(target){
+        target.name = name; target.category = category; target.paidBy = paidBy; target.amount = amount; target.date = date;
+        target.paymentMode = paymentMode;
+      }
+    } else {
+      entries.push({ id: uid(), name, category, paidBy, amount, date, paymentMode });
+    }
+
+    await saveEntries();
+    resetForm();
+    render();
+    pushToSheet();
+  } finally {
+    isSubmittingEntry = false;
+    addBtnEl.disabled = false;
+  }
 });
 
 document.getElementById('cancelEditBtn').addEventListener('click', () => {
@@ -1047,6 +1072,18 @@ function buildGuestKey(g){
   return (g.name || '').trim().toLowerCase();
 }
 
+function dedupeEntries(list){
+  const seen = new Set();
+  const deduped = [];
+  list.forEach(e => {
+    const key = buildEntryKey(e);
+    if(seen.has(key)) return;
+    seen.add(key);
+    deduped.push(e);
+  });
+  return deduped;
+}
+
 async function pullFromSheet(){
   try{
     setSyncStatus('☁ Loading shared data…');
@@ -1055,18 +1092,26 @@ async function pullFromSheet(){
     const data = await res.json();
     const localByKey = {};
     entries.forEach(e => { localByKey[buildEntryKey(e)] = e; });
-    entries = (data.entries || []).map(raw => {
-      const base = {
+    const pulledEntries = (data.entries || []).map(raw => {
+      const partial = {
         name: raw.name || raw.item || '',
         category: raw.category || 'Other Purchases',
         paidBy: raw.paidBy || '',
         amount: Number(raw.amount) || 0,
-        date: raw.date || todayISO(),
-        paymentMode: raw.paymentMode || 'Cash'
+        date: raw.date || todayISO()
       };
-      const existing = localByKey[buildEntryKey(base)];
+      const existing = localByKey[buildEntryKey(partial)];
+      // If the shared sheet doesn't send back a payment mode at all (e.g. its
+      // backend script doesn't have that column yet), keep whatever this
+      // device already knew rather than silently defaulting to Cash.
+      const paymentMode = (raw.paymentMode !== undefined && raw.paymentMode !== null && raw.paymentMode !== '')
+        ? raw.paymentMode
+        : ((existing && existing.paymentMode) || 'Cash');
+      const base = { ...partial, paymentMode };
       return { ...base, id: raw.id || (existing ? existing.id : uid()) };
     });
+    const hadDuplicates = pulledEntries.length !== dedupeEntries(pulledEntries).length;
+    entries = dedupeEntries(pulledEntries);
     budget = Number(data.budget) || 0;
 
     const localGuestByKey = {};
@@ -1084,6 +1129,7 @@ async function pullFromSheet(){
     render();
     renderGuests();
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
+    if(hadDuplicates) pushToSheet();
   }catch(e){
     setSyncStatus('☁ Could not reach shared sheet — showing data and photos saved on this device.');
   }
@@ -1107,7 +1153,7 @@ async function pushToSheet(){
 async function loadLocalCache(){
   try{
     const res = await storage.get(STORAGE_KEY, false);
-    entries = res && res.value ? JSON.parse(res.value) : [];
+    entries = res && res.value ? dedupeEntries(JSON.parse(res.value)) : [];
   }catch(e){ entries = []; }
   try{
     const bres = await storage.get(BUDGET_KEY, false);
