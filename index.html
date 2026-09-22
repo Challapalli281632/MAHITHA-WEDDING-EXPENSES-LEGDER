@@ -955,7 +955,9 @@ document.getElementById('addBtn').addEventListener('click', async () => {
     await saveEntries();
     resetForm();
     render();
-    pushToSheet();
+    addBtnEl.textContent = 'Saving to shared sheet…';
+    await pushToSheet();
+    addBtnEl.textContent = '+ Add to Ledger';
   } finally {
     isSubmittingEntry = false;
     addBtnEl.disabled = false;
@@ -1141,7 +1143,8 @@ async function pushToSheet(){
     const res = await fetch(SYNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ entries, budget, guests })
+      body: JSON.stringify({ entries, budget, guests }),
+      keepalive: true
     });
     if(!res.ok) throw new Error('bad response');
     setSyncStatus('☁ Synced with shared sheet · ' + new Date().toLocaleTimeString());
