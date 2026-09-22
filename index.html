@@ -988,7 +988,7 @@ document.getElementById('entriesContainer').addEventListener('click', async (ev)
     document.getElementById('category').value = target.category;
     document.getElementById('paidBy').value = target.paidBy || '';
     document.getElementById('paidAmount').value = target.amount;
-    document.getElementById('entryDate').value = target.date;
+    document.getElementById('entryDate').value = (target.date || '').includes('T') ? target.date.split('T')[0] : (target.date || todayISO());
     document.getElementById('paymentMode').value = target.paymentMode || 'Cash';
     document.getElementById('addBtn').textContent = 'Update Entry';
     document.getElementById('addBtn').classList.add('editing');
